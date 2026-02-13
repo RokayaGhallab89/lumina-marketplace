@@ -1,11 +1,20 @@
 import { GoogleGenAI } from "@google/genai";
 import { Product } from '../types';
 
-// Initialize Gemini
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
-
 export const getShoppingAdvice = async (userQuery: string, currentContext: string, currentProducts: Product[]): Promise<{ text: string; productIds: number[] }> => {
   try {
+    // Check if API key exists before initialization to avoid "Uncaught ApiError"
+    if (!process.env.API_KEY) {
+      console.warn("Gemini API Key is missing. AI features are disabled.");
+      return {
+        text: "I'm currently offline because the API key is missing. Please check out our latest deals!",
+        productIds: []
+      };
+    }
+
+    // Initialize Gemini only when needed
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
     const productCatalog = currentProducts.map(p => 
       `ID: ${p.id}, Name: ${p.title}, Price: $${p.price}, Category: ${p.category}, Description: ${p.description}`
     ).join('\n');
